@@ -1,0 +1,25 @@
+{
+  "configVersion": 2,
+  "sourceCsv": "./examples/codexIndex.example.csv",
+  "indexAlias": "codex-archive-sessions",
+  "columns": {
+    "timestamp": "timestamp",
+    "sessionId": "sessionId",
+    "turnId": "turnId",
+    "speaker": "speaker",
+    "role": "role",
+    "phase": "phase",
+    "message": "message",
+    "fileNames": "fileNames",
+    "urls": "urls",
+    "sourceFile": "sourceFile"
+  },
+  "elasticsearch": {
+    "node": "http://127.0.0.1:9200"
+  },
+  "search": {
+    "defaultLimit": 10,
+    "maximumLimit": 50,
+    "defaultContextRows": 1
+  }
+}

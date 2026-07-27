@@ -1,0 +1,4 @@
+"timestamp","sessionId","turnId","speaker","role","phase","message","fileNames","urls","sourceFile"
+"2026-01-01T00:00:00.000Z","session-1","turn-1","user","user","","When is the approved birthday leave?","","","rollout-1.jsonl"
+"2026-01-01T00:00:01.000Z","session-1","turn-1","assistant","assistant","final_answer","The approved birthday leave is recorded for January 2.","","","rollout-1.jsonl"
+"2026-01-02T00:00:00.000Z","session-2","turn-2","user","user","","Please explain Elasticsearch fuzzy matching.","","https://www.elastic.co/","rollout-2.jsonl"

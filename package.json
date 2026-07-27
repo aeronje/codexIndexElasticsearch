@@ -1,0 +1,31 @@
+{
+  "name": "codex-index-elasticsearch",
+  "version": "0.4.0",
+  "description": "A provenance-first CLI that indexes Codex archive sessions from codexIndex.csv into local Elasticsearch and verifies hits against the CSV.",
+  "type": "module",
+  "bin": {
+    "codex-index-elasticsearch": "./src/cli.mjs"
+  },
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check src/cli.mjs && node --check src/commands.mjs && node --check src/csv-source.mjs",
+    "cli": "node src/cli.mjs"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@elastic/elasticsearch": "~9.4.2",
+    "csv-parse": "~7.0.1"
+  },
+  "license": "MIT",
+  "keywords": [
+    "csv",
+    "codex",
+    "openai",
+    "elasticsearch",
+    "search",
+    "provenance",
+    "retrieval"
+  ]
+}

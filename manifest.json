@@ -1,0 +1,28 @@
+{
+  "name": "codexIndexElasticsearch",
+  "version": "0.4.0",
+  "schemaVersion": 1,
+  "configVersion": 2,
+  "indexMappingVersion": 1,
+  "recordKeyVersion": 1,
+  "parentRepository": "https://github.com/aeronje/reindexArchiveSessionsForCodex",
+  "sourceOfTruth": "The user-configured codexIndex.csv generated from Codex rollout archives",
+  "derivedState": "Elasticsearch indices are disposable and rebuildable",
+  "networkMode": "Unauthenticated HTTP bound exclusively to 127.0.0.1",
+  "runtime": {
+    "node": ">=20.0.0",
+    "elasticsearch": "9.x",
+    "javascriptClient": "~9.4.2"
+  },
+  "commands": [
+    "config-check",
+    "doctor",
+    "import",
+    "search",
+    "status",
+    "verify"
+  ],
+  "hostScripts": [
+    "scripts/elasticsearchSingleNodeInstallation.sh"
+  ]
+}
