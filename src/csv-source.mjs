@@ -44,7 +44,15 @@ function normalizeRow(row, columns, logicalRow) {
   if (!record.timestamp || Number.isNaN(Date.parse(record.timestamp))) {
     throw new Error(`CSV logical row ${logicalRow} has an invalid timestamp: ${record.timestamp || "<empty>"}`);
   }
-  if (!record.message.trim()) throw new Error(`CSV logical row ${logicalRow} has an empty message.`);
+  if (!record.message.trim()) {
+    const provenanceFields = ["session_id", "turn_id", "speaker", "role", "source_file"];
+    const missingProvenance = provenanceFields.filter((field) => !record[field].trim());
+    if (missingProvenance.length) {
+      throw new Error(
+        `CSV logical row ${logicalRow} has an empty message and incomplete provenance: ${missingProvenance.join(", ")}.`
+      );
+    }
+  }
   record.record_key = createRecordKey(record);
   return record;
 }

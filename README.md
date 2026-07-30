@@ -114,7 +114,7 @@ node src/cli.mjs verify --record-key <64-character-sha256>
 
 ### `config-check`
 
-Reads the local configuration and entire CSV, validates required headers, validates timestamps and messages, detects duplicate normalized records, and reports the CSV SHA-256 fingerprint. It does not contact Elasticsearch.
+Reads the local configuration and entire CSV, validates required headers, timestamps, and message provenance, detects duplicate normalized records, and reports the CSV SHA-256 fingerprint. Whitespace-only messages are retained when the record has complete session, turn, speaker, role, and source-file provenance; this preserves attachment-only archive events. It does not contact Elasticsearch.
 
 ### `doctor`
 
