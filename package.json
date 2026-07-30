@@ -1,6 +1,6 @@
 {
   "name": "codex-index-elasticsearch",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "A provenance-first CLI that indexes Codex archive sessions from codexIndex.csv into local Elasticsearch and verifies hits against the CSV.",
   "type": "module",
   "bin": {
