@@ -1,10 +1,15 @@
 {
   "name": "codexIndexElasticsearch",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "schemaVersion": 1,
   "configVersion": 2,
   "indexMappingVersion": 1,
   "recordKeyVersion": 1,
+  "indexRetention": {
+    "policy": "current-plus-predecessor",
+    "maximumSuccessfulGenerations": 2,
+    "cleanupPoint": "after verified alias cutover"
+  },
   "parentRepository": "https://github.com/aeronje/reindexArchiveSessionsForCodex",
   "sourceOfTruth": "The user-configured codexIndex.csv generated from Codex rollout archives",
   "derivedState": "Elasticsearch indices are disposable and rebuildable",

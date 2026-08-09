@@ -127,8 +127,10 @@ Runs `config-check`, connects to Elasticsearch, confirms that the server is Elas
 3. Bulk-indexes records with deterministic SHA-256 document IDs.
 4. Verifies the Elasticsearch document count against the CSV.
 5. Moves the configured alias to the verified generation.
+6. Retains the new current generation and the former alias target as its single rollback predecessor.
+7. Deletes every older generated index after the successful alias cutover.
 
-Previous generated indices are retained for deliberate review. The importer never deletes an older working generation automatically.
+The importer keeps exactly two successful generations after each completed replacement import: the aliased current index and its immediate predecessor. Failed imports delete only their disposable new generation and preserve the existing working pair.
 
 ### `status`
 

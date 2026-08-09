@@ -14,6 +14,34 @@ function generatedIndexName(alias) {
   return `${alias}-${new Date().toISOString().replace(/[-:.TZ]/g, "").toLowerCase()}`;
 }
 
+async function aliasIndexNames(client, alias) {
+  try {
+    return Object.keys(await client.indices.getAlias({ name: alias }));
+  } catch (error) {
+    if (isNotFound(error)) return [];
+    throw error;
+  }
+}
+
+async function pruneGeneratedIndices(client, alias, keepIndices) {
+  let generations;
+  try {
+    generations = await client.indices.get({
+      index: `${alias}-*`,
+      allow_no_indices: true,
+      expand_wildcards: "all"
+    });
+  } catch (error) {
+    if (isNotFound(error)) return [];
+    throw error;
+  }
+
+  const keep = new Set(keepIndices.filter(Boolean));
+  const removed = Object.keys(generations).filter((index) => !keep.has(index));
+  for (const index of removed) await client.indices.delete({ index });
+  return removed;
+}
+
 export async function configCheckCommand(config) {
   const source = loadCsvSource(config);
   return {
@@ -50,6 +78,11 @@ export async function doctorCommand(config, client) {
 
 export async function importCommand(config, client) {
   const source = loadCsvSource(config);
+  const previousAliasIndices = await aliasIndexNames(client, config.indexAlias);
+  if (previousAliasIndices.length > 1) {
+    throw new Error(`Alias ${config.indexAlias} points to multiple indices; refusing ambiguous retention cleanup.`);
+  }
+  const predecessorIndex = previousAliasIndices[0] ?? null;
   const newIndex = generatedIndexName(config.indexAlias);
   const definition = createIndexDefinition(source);
   await client.indices.create({ index: newIndex, ...definition });
@@ -87,6 +120,16 @@ export async function importCommand(config, client) {
     throw error;
   }
 
+  let removedIndices;
+  try {
+    removedIndices = await pruneGeneratedIndices(client, config.indexAlias, [newIndex, predecessorIndex]);
+  } catch (error) {
+    throw new Error(
+      `Import verified and alias moved to ${newIndex}, but retention cleanup failed: ${error.message}`,
+      { cause: error }
+    );
+  }
+
   return {
     status: "imported",
     sourceCsv: source.sourcePath,
@@ -101,7 +144,13 @@ export async function importCommand(config, client) {
       bytes: bulkResult.bytes,
       elapsedMs: bulkResult.time
     },
-    note: "Previous generated indices are retained until explicitly reviewed and removed."
+    retention: {
+      policy: "current-plus-predecessor",
+      currentIndex: newIndex,
+      predecessorIndex,
+      removedIndices
+    },
+    note: "Only the verified current generation and its immediate predecessor are retained."
   };
 }
 

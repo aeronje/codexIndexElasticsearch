@@ -9,17 +9,40 @@ import { importCommand, searchCommand, statusCommand, verifyCommand } from "../s
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const config = loadConfig(resolve(ROOT, "config.example.json"));
 
-function fakeClient() {
-  const state = { documents: new Map(), created: null, alias: null, deleted: [] };
+function fakeClient({ alias = null, generations = [] } = {}) {
+  const state = {
+    documents: new Map(),
+    created: null,
+    alias,
+    deleted: [],
+    generations: new Set(generations)
+  };
   return {
     state,
     indices: {
-      async create(request) { state.created = request; },
+      async create(request) {
+        state.created = request;
+        state.generations.add(request.index);
+      },
       async refresh() {},
+      async getAlias() {
+        if (!state.alias) {
+          const error = new Error("not found");
+          error.meta = { statusCode: 404 };
+          throw error;
+        }
+        return { [state.alias]: { aliases: {} } };
+      },
+      async get() {
+        return Object.fromEntries([...state.generations].map((index) => [index, {}]));
+      },
       async updateAliases(request) {
         state.alias = request.actions.at(-1).add.index;
       },
-      async delete({ index }) { state.deleted.push(index); }
+      async delete({ index }) {
+        state.deleted.push(index);
+        state.generations.delete(index);
+      }
     },
     helpers: {
       async bulk({ datasource, onDocument }) {
@@ -53,6 +76,21 @@ test("import creates a verified generation and moves the alias", async () => {
   assert.equal(client.state.documents.size, 3);
   assert.equal(client.state.alias, result.index);
   assert.equal(client.state.created.mappings.dynamic, "strict");
+  assert.equal(result.retention.predecessorIndex, null);
+  assert.deepEqual(result.retention.removedIndices, []);
+});
+
+test("import retains the current generation and immediate predecessor only", async () => {
+  const predecessor = "codex-archive-sessions-20260102";
+  const obsolete = "codex-archive-sessions-20260101";
+  const client = fakeClient({ alias: predecessor, generations: [obsolete, predecessor] });
+  const result = await importCommand(config, client);
+
+  assert.equal(result.retention.policy, "current-plus-predecessor");
+  assert.equal(result.retention.currentIndex, result.index);
+  assert.equal(result.retention.predecessorIndex, predecessor);
+  assert.deepEqual(result.retention.removedIndices, [obsolete]);
+  assert.deepEqual([...client.state.generations].sort(), [predecessor, result.index].sort());
 });
 
 test("verify reconciles Elasticsearch with the canonical CSV", async () => {
